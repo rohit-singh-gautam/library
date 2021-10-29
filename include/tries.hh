@@ -46,31 +46,25 @@ struct default_value<double> {
     static constexpr double value = 0.0;
 };
 
-template <typename key_type, typename value_type, typename TLIST>
+template <typename value_type, typename TLIST>
 struct tries_node {
     typedef tries_node* iterator;
-    using key_char_type = key_type::value_type;
-
-    value_type value;
-    key_char_type key_char;
-
-    tries_node(key_char_type key_char = default_value<key_char_type>::value) : key_char(key_char) { }
+    value_type value = default_value<value_type>::value;
 
     TLIST children;
 
     auto end() { return children.end(); }
-
 }; // class tries_node
 
 template <typename key_type, typename value_type = bool>
 struct tries_unordered_map {
     using key_char_type = key_type::value_type;
-    using node_type = tries_node<key_type, value_type, tries_unordered_map>;
+    using node_type = tries_node<value_type, tries_unordered_map>;
     using iterator = node_type::iterator;
 
     std::unordered_map<key_char_type, node_type *> list;
 
-    auto find(const node_type::key_char_type &key_char) {
+    auto find(const key_char_type &key_char) {
         auto result = list.find(key_char);
         if (result == list.end()) {
             return end();
@@ -80,7 +74,7 @@ struct tries_unordered_map {
     }
 
     auto insert(const key_char_type& key_char) {
-        auto child = new node_type(key_char);
+        auto child = new node_type();
         list.insert(make_pair(key_char, child));
         return child;
     }
@@ -92,16 +86,17 @@ struct tries_unordered_map {
 
 
 template <typename key_type, typename value_type, typename TLIST>
-class tries : private tries_node<key_type, value_type, TLIST> {
-    using node_type = tries_node<key_type, value_type, TLIST>;
-    using iterator = tries_node<key_type, value_type, TLIST>::iterator;
-    using node_type::end;
+class tries {
+    using node_type = tries_node<value_type, TLIST>;
+    using iterator = tries_node<value_type, TLIST>::iterator;
+
+    node_type root;
 
 public:
     tries() {}
 
     void insert(const key_type& key, value_type&& value) {
-        iterator itr = this;
+        iterator itr = &root;
         auto key_itr = key.begin();
         for(;key_itr != key.end(); ++key_itr) {
             iterator child_itr = itr->children.find(*key_itr);
@@ -118,7 +113,7 @@ public:
     }
 
     auto search(const key_type& key) {
-        iterator itr = this;
+        iterator itr = &root;
         for(auto key_ch: key) {
             itr = itr->children.find(key_ch);
             if (itr == itr->children.end()) {
@@ -136,6 +131,10 @@ public:
         }
 
         return result->value != default_value<value_type>::value;
+    }
+
+    auto end() {
+        return root.end();
     }
 
 };
