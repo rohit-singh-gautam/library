@@ -18,7 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <vector>
 #include <iostream>
 
-typedef rohit::tries_set<std::string, rohit::tries_unordered_map<std::string>> string_tries;
+typedef rohit::tries_set<std::string, rohit::tries_unordered_map<std::string>> string_tries_old;
+typedef rohit::tries_set<std::string, rohit::tries_tree<std::string, bool, rohit::blancing_type::none>> string_tries_old1;
+typedef rohit::tries_set<std::string, rohit::tries_tree<std::string, bool, rohit::blancing_type::red_black>> string_tries;
 
 void insert_all(string_tries &set_tries, const std::vector<std::string> &data) {
     for(auto value: data) {

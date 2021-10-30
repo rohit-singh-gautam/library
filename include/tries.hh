@@ -13,6 +13,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <tree.hh>
 #include <string>
 #include <unordered_map>
 
@@ -84,6 +85,33 @@ struct tries_unordered_map {
     }
 };
 
+template <typename key_type, typename value_type = bool, blancing_type impl = blancing_type::none>
+struct tries_tree {
+    using key_char_type = key_type::value_type;
+    using node_type = tries_node<value_type, tries_tree>;
+    using iterator = node_type::iterator;
+
+    rohit::bst<key_char_type, node_type *, impl> list;
+
+    iterator find(const key_char_type &key_char) {
+        auto result = list.find(key_char);
+        if (result == list.end()) {
+            return end();
+        }
+
+        return result->value;
+    }
+
+    auto insert(const key_char_type& key_char) {
+        auto child = new node_type();
+        list.insert(key_char, child);
+        return child;
+    }
+
+    iterator end() {
+        return nullptr;
+    }
+};
 
 template <typename key_type, typename value_type, typename TLIST>
 class tries {
