@@ -16,6 +16,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #pragma once
 
 #include <tree.hh>
+#include <display.hh>
+#include <tree_traversal.hh>
 #include <vector>
 #include <string>
 #include <iostream>
@@ -32,7 +34,10 @@ void display_inorder(bst_node<key_type, value_type, impl> *root) {
 
 template <typename key_type, typename value_type, blancing_type impl>
 void display_inorder(bst<key_type, value_type, impl> &bst) {
-    display_inorder(bst.root);
+    auto list = inorder(bst);
+    std::vector<key_type> key_list;
+    std::ranges::copy(std::views::transform(list, [](auto &val) { return val.first; }), std::back_inserter(key_list));
+    std::cout << key_list;
 }
 
 template <typename key_type, typename value_type, blancing_type impl>
