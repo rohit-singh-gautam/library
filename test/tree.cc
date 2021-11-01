@@ -36,6 +36,8 @@ int main(int argc, char *argv[]) {
         rohit::display_inorder(tree);
         std::cout << "\nPostorder: ";
         rohit::display_postorder(tree);
+        std::cout << "\nPreorder: ";
+        rohit::display_preorder(tree);
         std::cout << std::endl;
     }
 

@@ -83,4 +83,33 @@ std::vector<std::pair<key_type, value_type>> postorder(bst<key_type, value_type,
     return postorder(bst.root);
 }
 
+template <typename key_type, typename value_type, blancing_type impl>
+std::vector<std::pair<key_type, value_type>> preorder(bst_node<key_type, value_type, impl> *root) {
+    std::vector<std::pair<key_type, value_type>> results;
+    std::stack<bst_node<key_type, value_type, impl> *> st;
+    
+    while(root) {
+        results.push_back(std::make_pair(root->key, root->value));
+        st.push(root);
+        root = root->left;
+    }
+
+    while(!st.empty()) {
+        auto top = st.top();
+        st.pop();
+        auto root = top->right;
+        while(root) {
+            results.push_back(std::make_pair(root->key, root->value));
+            st.push(root);
+            root = root->left;
+        }
+    }
+    return results;    
+}
+
+template <typename key_type, typename value_type, blancing_type impl>
+std::vector<std::pair<key_type, value_type>> preorder(bst<key_type, value_type, impl> &bst) {
+    return preorder(bst.root);
+}
+
 } // namespace rohit
