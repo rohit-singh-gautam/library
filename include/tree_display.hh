@@ -50,7 +50,10 @@ void display_postorder(bst_node<key_type, value_type, impl> *root) {
 
 template <typename key_type, typename value_type, blancing_type impl>
 void display_postorder(bst<key_type, value_type, impl> &bst) {
-    display_postorder(bst.root);
+    auto list = postorder(bst);
+    std::vector<key_type> key_list;
+    std::ranges::copy(std::views::transform(list, [](auto &val) { return val.first; }), std::back_inserter(key_list));
+    std::cout << key_list;
 }
 
 } // namespace rohit
