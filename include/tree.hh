@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <assert.h>
 #include <algorithm>
+#include <concepts>
 
 namespace rohit {
 
@@ -27,12 +28,15 @@ enum class blancing_type {
 };
 
 template <typename key_type, typename value_type, blancing_type impl>
+    requires std::totally_ordered<key_type>
 struct bst_node;
 
 template <typename key_type, typename value_type, blancing_type impl>
+    requires std::totally_ordered<key_type>
 class bst;
 
 template <typename key_type, typename value_type>
+    requires std::totally_ordered<key_type>
 struct bst_node_base {
     key_type key;
     value_type value;
@@ -41,6 +45,7 @@ struct bst_node_base {
 }; // class bst_node_base
 
 template <typename key_type, typename value_type>
+    requires std::totally_ordered<key_type>
 struct bst_node<key_type, value_type, blancing_type::none> :
     public bst_node_base<key_type, value_type>
 {
@@ -53,6 +58,7 @@ struct bst_node<key_type, value_type, blancing_type::none> :
 }; // struct bst_node<key_type, value_type, blancing_type::none>
 
 template <typename key_type, typename value_type, blancing_type impl>
+    requires std::totally_ordered<key_type>
 class bst_base {
 public:
     using node_type = bst_node<key_type, value_type, impl>;
@@ -97,6 +103,7 @@ public:
 };
 
 template <typename key_type, typename value_type>
+    requires std::totally_ordered<key_type>
 class bst<key_type, value_type, blancing_type::none> :
     public bst_base<key_type, value_type, blancing_type::none> {
 public:
@@ -139,6 +146,7 @@ public:
 }; // class bst<key_type, value_type, blancing_type::none>
 
 template <typename key_type, typename value_type>
+    requires std::totally_ordered<key_type>
 struct bst_node<key_type, value_type, blancing_type::red_black> :
     public bst_node_base<key_type, value_type>
 {
@@ -248,6 +256,7 @@ public:
 }; // class bst<key_type, value_type, blancing_type::red_black>
 
 template <typename key_type, typename value_type>
+    requires std::totally_ordered<key_type>
 struct bst_node<key_type, value_type, blancing_type::red_black_leftleaning> :
     public bst_node_base<key_type, value_type>
 {
