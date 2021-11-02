@@ -64,4 +64,45 @@ void display_preorder(bst<key_type, value_type, impl> &bst) {
     std::cout << key_list;
 }
 
+template <typename key_type, typename value_type, blancing_type impl>
+size_t display_tree(bst_node<key_type, value_type, impl> *root, std::vector<std::string> &lines, size_t depth, size_t maxdepth, size_t minwidth) {
+    if (root == nullptr) {
+        while(depth < maxdepth) {
+            auto &line = lines[depth++];
+            line.append(minwidth, ' ');
+        }
+        return minwidth;
+    }
+    std::string curr_str = std::to_string(root->key);
+    auto width = std::max(curr_str.size() + 2, minwidth);
+    auto left_width = display_tree(root->left, lines, depth + 1, maxdepth, (width + 1)/2);
+    auto right_width = display_tree(root->right, lines, depth + 1, maxdepth, width/2);
+    width = left_width + right_width;
+
+    auto &line = lines[depth];
+    auto dash_width = width - curr_str.size() - 2;
+    line.append(1, ' ');
+    line.append((dash_width + 1)/2, '-');
+    line.append(curr_str);
+    line.append(dash_width/2, '-');
+    line.append(1, ' ');
+    return width;
+}
+
+template <typename key_type, typename value_type, blancing_type impl>
+void display_tree(bst<key_type, value_type, impl> &bst) {
+    auto depth = bst.depth();
+    std::vector<std::string> lines;
+    for(size_t count = 0; count < depth; ++count) {
+        lines.push_back("");
+    }
+
+    display_tree(bst.root, lines, 0, depth, 0);
+
+    for(auto line: lines) {
+        std::cout << line << std::endl;
+    }
+    std::cout << std::endl;
+}
+
 } // namespace rohit
