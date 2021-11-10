@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
         701, 702, 703, 704, 705, 706, 707, 708, 709, 710
     };
 
-    rohit::bst<int, bool, rohit::blancing_type::red_black> tree;
+    rohit::bst<int, bool, rohit::blancing_type::avl> tree;
     size_t count = 0;
 
     for(auto value: values) {

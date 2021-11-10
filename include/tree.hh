@@ -25,6 +25,7 @@ enum class blancing_type {
     none,
     red_black,
     red_black_leftleaning,
+    avl
 };
 
 template <typename key_type, typename value_type, blancing_type impl>
@@ -62,12 +63,11 @@ template <typename key_type, typename value_type, blancing_type impl>
 class bst_base {
 public:
     using node_type = bst_node<key_type, value_type, impl>;
-    using iterator = node_type *;
 
     node_type *root = nullptr;
 
 private:
-    size_t depth(iterator root) {
+    size_t depth(node_type * root) {
         if (root == nullptr) return 0;
         auto left_depth = depth(root->left);
         auto right_depth = depth(root->right);
@@ -96,7 +96,7 @@ public:
         return depth(root);
     }
 
-    iterator end() {
+    node_type * end() {
         return nullptr;
     }
 
@@ -109,7 +109,6 @@ class bst<key_type, value_type, blancing_type::none> :
 public:
     using base_type = bst_base<key_type, value_type, blancing_type::none>;
     using node_type = base_type::node_type;
-    using iterator = base_type::iterator;
     using base_type::root;
 
 public:
@@ -165,11 +164,10 @@ class bst<key_type, value_type, blancing_type::red_black> :
 public:
     using base_type = bst_base<key_type, value_type, blancing_type::red_black>;
     using node_type = base_type::node_type;
-    using iterator = base_type::iterator;
     using base_type::root;
 
 private:
-    iterator insert_recursive(iterator root, const key_type &key, const value_type &value) {
+    node_type * insert_recursive(node_type * root, const key_type &key, const value_type &value) {
         if (root->key == key) {
             root->value = value;
             return root;
@@ -275,17 +273,16 @@ class bst<key_type, value_type, blancing_type::red_black_leftleaning> :
 public:
     using base_type = bst_base<key_type, value_type, blancing_type::red_black_leftleaning>;
     using node_type = base_type::node_type;
-    using iterator = base_type::iterator;
     using base_type::root;
 
 private:
 
-    bool is_red(iterator _root) {
+    bool is_red(node_type * _root) {
         if (_root == nullptr) return false;
         return _root->red;
     }
 
-    void flip_color(iterator _root) {
+    void flip_color(node_type * _root) {
         assert(!_root->red);
         assert(_root->left->red);
         assert(_root->right->red);
@@ -294,7 +291,7 @@ private:
         _root->right->red = false;
     }
 
-    iterator rotate_left(iterator _root) {
+    node_type * rotate_left(node_type * _root) {
         auto right = _root->right;
         _root->right = right->left;
         right->left = _root;
@@ -305,7 +302,7 @@ private:
         return right;
     }
 
-    iterator rotate_right(iterator _root) {
+    node_type * rotate_right(node_type * _root) {
         assert(!_root->red);
         auto left = _root->left;
         _root->left = left->right;
@@ -317,7 +314,7 @@ private:
         return left;
     }
 
-    iterator insert_recursive(iterator _root, const key_type &key, const value_type &value) {
+    node_type * insert_recursive(node_type * _root, const key_type &key, const value_type &value) {
         if (_root == nullptr) return new node_type(key, value);
         if (key < _root->key) _root->left = insert_recursive(_root->left, key, value);
         else if (key > _root->key) _root->right = insert_recursive(_root->right, key, value);
@@ -337,6 +334,118 @@ public:
         root->red = false;
     }
 }; // class bst<key_type, value_type, blancing_type::red_black_leftleaning>
+
+template <typename key_type, typename value_type>
+    requires std::totally_ordered<key_type>
+struct bst_node<key_type, value_type, blancing_type::avl> :
+    public bst_node_base<key_type, value_type>
+{
+    using base_type = bst_node_base<key_type, value_type>;
+    int count = 1; // initial count is always one
+
+    bst_node *left = nullptr;
+    bst_node *right = nullptr;
+
+    bst_node(const key_type &key, const value_type &value) : base_type(key, value) { }
+}; // struct bst_node<key_type, value_type, blancing_type::red_black>
+
+
+template <typename key_type, typename value_type>
+class bst<key_type, value_type, blancing_type::avl> :
+    public bst_base<key_type, value_type, blancing_type::avl> {
+public:
+    using base_type = bst_base<key_type, value_type, blancing_type::avl>;
+    using node_type = base_type::node_type;
+    using base_type::root;
+
+private:
+    int child_count_diff(node_type * _root) {
+        int left = _root->left ? _root->left->count : 0;
+        int right = _root->right ? _root->right->count : 0;
+        return left - right;
+    }
+    void update_count(node_type * _root) {
+        int left = _root->left ? _root->left->count : 0;
+        int right = _root->right ? _root->right->count : 0;
+        _root->count = std::max(left, right) + 1;
+    }
+
+    //      a              b
+    //         b   =>   a     c
+    //            c
+    node_type * rotate_left(node_type * _root) {
+        auto right = _root->right;
+        _root->right = right->left;
+        right->left = _root;
+        update_count(_root);
+        update_count(right);
+        assert(right != nullptr);
+        return right;
+    }
+
+    //          a           b
+    //       b     =>    c     a
+    //    c
+    node_type * rotate_right(node_type * _root) {
+        auto left = _root->left;
+        _root->left = left->right;
+        left->right = _root;
+        update_count(root);
+        update_count(left);
+        assert(left != nullptr);
+        return left;
+    }
+
+    //      a               c
+    //         b   =>    a     b
+    //      c
+    node_type * rotate_right_left(node_type * _root) {
+        auto newroot = _root->right->left;
+        _root->right->left = newroot->right;
+        newroot->right = _root->right;
+        _root->right = newroot->left;
+        newroot->left = _root;
+        update_count(newroot->left);
+        update_count(newroot->right);
+        update_count(newroot);
+        return newroot;
+    }
+
+    //          a           c
+    //       b     =>    b     a
+    //          c
+    node_type * rotate_left_right(node_type * _root) {
+        auto newroot = _root->left->right;
+        _root->left->right = newroot->left;
+        newroot->left = root->left;
+        _root->left = newroot->right;
+        newroot->right = _root;
+        update_count(newroot->left);
+        update_count(newroot->right);
+        update_count(newroot);
+        return newroot;
+    }
+
+    node_type * insert_recursive(node_type * _root, const key_type &key, const value_type &value) {
+        if (_root == nullptr) return new node_type(key, value);
+        if (key < _root->key) _root->left = insert_recursive(_root->left, key, value);
+        else if (key > _root->key) _root->right = insert_recursive(_root->right, key, value);
+        else _root->value = value;
+    
+        auto count_diff = child_count_diff(_root);
+        if (count_diff <= -2) _root = rotate_left(_root);
+        else if (count_diff >= 2) _root = rotate_right(_root);
+        else update_count(_root);
+
+        return _root;
+    }
+
+public:
+    // Duplicate will be overridden
+    void insert(const key_type &key, const value_type &value) {
+        root = insert_recursive(root, key, value);
+    }
+}; // class bst<key_type, value_type, blancing_type::avl>
 
 
 } // namespace rohit

@@ -74,6 +74,9 @@ size_t display_tree(bst_node<key_type, value_type, impl> *root, std::vector<std:
         return minwidth;
     }
     std::string curr_str = std::to_string(root->key);
+    if constexpr (impl == blancing_type::avl) {
+        curr_str += ":" + std::to_string(root->count);
+    }
     auto width = std::max(curr_str.size() + 2, minwidth);
     auto left_width = display_tree(root->left, lines, depth + 1, maxdepth, (width + 1)/2);
     auto right_width = display_tree(root->right, lines, depth + 1, maxdepth, width/2);
@@ -83,7 +86,17 @@ size_t display_tree(bst_node<key_type, value_type, impl> *root, std::vector<std:
     auto dash_width = width - curr_str.size() - 2;
     line.append(1, ' ');
     line.append((dash_width + 1)/2, '-');
+    if constexpr (impl == blancing_type::red_black || impl == blancing_type::red_black_leftleaning) {
+        if (root->red == true) {
+            line.append("\033[0;31m");
+        }
+    }
     line.append(curr_str);
+    if constexpr (impl == blancing_type::red_black || impl == blancing_type::red_black_leftleaning) {
+        if (root->red == true) {
+            line.append("\033[0m");
+        }
+    }
     line.append(dash_width/2, '-');
     line.append(1, ' ');
     return width;
